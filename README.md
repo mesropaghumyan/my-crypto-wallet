@@ -1,66 +1,98 @@
-# my-crypto-wallet
+# 🪙 MyCryptoWallet
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+MyCryptoWallet est une API REST de gestion de portefeuille de crypto-monnaies simplifiée, conçue pour calculer la valorisation d'actifs en temps réel.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+Ce projet a été réalisé pour tester l'implémentation rigoureuse de l'Architecture Hexagonale (Ports & Adapters) avec le framework Quarkus.
 
-## Running the application in dev mode
+## 🏗️ Architecture
 
-You can run your application in dev mode that enables live coding using:
+Le projet respecte strictement la séparation des responsabilités selon le pattern Hexagonal. Le code est organisé pour isoler la logique métier des détails techniques.
 
-```shell script
-./mvnw quarkus:dev
+![Diagramme d'Architecture Hexagonale](docs/architecture.png)
+
+Structure du projet (src/main/java/fr/mycryptowallet)
+- 🟢 Domain : Le cœur du réacteur. Contient les règles métier (Investment), les exceptions et les interfaces (Ports) comme CryptoPriceProvider. Aucune dépendance framework ici.
+- 🟡 Application : Orchestration. Contient WalletService qui lie le domaine et les ports.
+- 🔵 Infrastructure :
+  - Driving (Entrée) : Ce qui pilote l'application. Contient le contrôleur REST (WalletResource), les DTOs et les Mappers.
+  - Driven (Sortie) : Ce qui est piloté par l'application. Contient l'adaptateur vers l'API externe (CoinGeckoAdapter).
+
+## 🛠️ Stack Technique
+
+- Langage : Java 17
+- Framework : Quarkus (Supersonic Subatomic Java)
+- Build Tool : Maven
+- Architecture : Hexagonale (Clean Architecture)
+- API Externe : CoinGecko API (via MicroProfile REST Client)
+- Tests : JUnit 5, Mockito, AssertJ
+
+## 🚀 Démarrage Rapide
+
+**Prérequis :**
+
+- JDK 17+ installé
+- Maven 3.8+
+
+### Lancement en mode développement
+
+Le mode dev de Quarkus permet le rechargement à chaud (Live Reload).
+
+```shell
+mvn quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+L'application sera accessible sur : http://localhost:8080
 
-## Packaging and running the application
+## 📡 Utilisation de l'API
 
-The application can be packaged using:
+L'endpoint principal permet de calculer la valeur totale d'un portefeuille.
 
-```shell script
-./mvnw package
+Endpoint : POST /wallet/value
+
+Exemple de Corps (JSON) :
+
+```json
+[
+  {
+    "crypto": "Bitcoin",
+    "quantity": 0.5
+  },
+  {
+    "crypto": "Ethereum",
+    "quantity": 10
+  }
+]
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+Tester avec cURL (Linux / Mac / WSL) :
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
+```shell
+curl -X POST "http://localhost:8080/wallet/value" \
+     -H "Content-Type: application/json" \
+     -d '[{"crypto":"Bitcoin", "quantity":0.5}, {"crypto":"Ethereum", "quantity":2}]'
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+Tester avec PowerShell (Windows) :
 
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
+```shell
+Invoke-RestMethod -Method Post -Uri "http://localhost:8080/wallet/value" `
+  -ContentType "application/json" `
+  -Body '[{"crypto":"Bitcoin", "quantity":0.5}, {"crypto":"Ethereum", "quantity":2}]'
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
+## ✅ Tests Unitaires
 
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
+Le projet suit une approche AAA (Arrange, Act, Assert) pour structurer chaque test de manière claire et lisible, garantissant que chaque unité de code fonctionne isolément.
+
+Pour lancer tous les tests :
+
+```shell
+mvn test
 ```
 
-You can then execute your native executable with: `./target/my-crypto-wallet-1.0.0-SNAPSHOT-runner`
+## 🚧 TODO
+Voici les prochaines étapes et améliorations qui pourraient être apportées au projet :
 
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
+- [ ] Rendre le choix de la devise dynamique, par défaut c'est en euro dans le code.
 
-## Related Guides
-
-- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
-
-## Provided Code
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+- [ ] Implémenter un système de gestion des exceptions.
